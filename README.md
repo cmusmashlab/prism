@@ -1,6 +1,6 @@
-# PrISM: Procedure Interaction from Sensing Modules
+# PrISM: Procedure Interaction from Sensing Module
 
-![Screenshot 2024-10-01 at 12 01 23 AM](https://github.com/user-attachments/assets/9cba4401-0b19-4014-9349-5cbbd382854b)
+![372315677-9cba4401-0b19-4014-9349-5cbbd382854b](https://github.com/user-attachments/assets/1be0b251-31b6-4a67-862c-74f9c138bbdf)
 
 
 This is a repository for the research code in which we aim to develop a real-time intelligent assistant that navigates users through dialogues during procedural tasks (e.g., cooking, latte-making, medical self-care).
@@ -16,7 +16,7 @@ Riku Arakawa, Hiromu Yakura, Mayank Goel.
 Proceedings of the 37th Annual ACM Symposium on User Interface Software and Technology (UIST’24), Pittsburgh USA, Oct. 2024.](https://arxiv.org/abs/2407.16785)
 - PrISM-Q&A: Step-Aware Question Answering with Large Language Models Enabled by Multimodal Procedure Tracking using a Smartwatch.
 Riku Arakawa, Jill Fain Lefman, Mayank Goel.
-Proceedings of the ACM on Interactive Mobile Wearable Ubiquitous Technology, Volume 8, Issue 4. (Ubicomp'25) (pending minor revision)
+Proceedings of the ACM on Interactive Mobile Wearable Ubiquitous Technology, Volume 8, Issue 4. (Ubicomp'25)
 
 
 # What's in this repository now
