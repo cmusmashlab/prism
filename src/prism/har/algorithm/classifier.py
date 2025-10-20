@@ -1,4 +1,3 @@
-import numpy as np
 import pickle
 from sklearn.ensemble import RandomForestClassifier
 
@@ -6,7 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 class Classifier():
 
     def __init__(self):
-        self.model = RandomForestClassifier()
+        self.model = RandomForestClassifier(class_weight='balanced', n_jobs=-1)
         print('Classifier initialized.')
 
     def train(self, X, y):

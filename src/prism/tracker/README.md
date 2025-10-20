@@ -4,20 +4,22 @@ This is an extended Viterbi algorithm to postprocess the frame-level HAR outputs
 
 # Scripts
 
-## tracker.py
+## tracking.py
 
-This will generate post-processed results at `datadrive / tasks / {task_name} / models`.
+This will generate post-processed results at `datadrive / tasks / {task_name} / tracker / {model_hash}`.
 
 ```
-$ python tracker.py --task latte_making
+$ python tracking.py --task latte_making --model_hash XXX
 ```
 
-You can specify test participants by using `--test_pids`.
+- You can specify test sessions by using `--test_sids`.
+- You need to specify the model hash that was used for training the HAR module.
 
 # API
 
 ```
 from prism.tracker import TrackerAPI
 
-tracker_api = TrackerAPI(task_name='latte_making')
+model_hash = 'test_model'
+tracker_api = TrackerAPI(task_name='latte_making', model_hash=model_hash)
 ```

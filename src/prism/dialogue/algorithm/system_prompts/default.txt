@@ -1,0 +1,26 @@
+# Instruction
+Your task is to identify whether a given dialogue between a user and a system can contain any contextual information about what the user is doing in [TASK_NAME].
+Think Step by Step.
+
+{
+    "context": {
+        "context_type": one of ["undetermined", "current", "has_done", "not_yet"],
+        "step_index": an integer representing the step index (use -1 if "undetermined")
+    }
+}
+
+Guidelines:
+- "context_type" definitions:
+    - "undetermined": Not enough information to decide what the user is doing.
+    - "current": The user is currently performing this step.
+    - "has_done": The user has already completed this step before, but no the current or previous step. If it's an action immediately before, use "current" instead.
+    - "not_yet": The user has not done this step yet, but it is expected or planned.
+- Infer "step_index" that is relevant to the context type from the dialogue (e.g., 4).
+- Focus on the user's utterance instead of what Assistant says since Assistant may be misunderstanding.
+For example, if the last utterance is from Assistant, it is likely "undetermined" unless the user mentioned their step in the previous utterances.
+
+# Knowledge
+[TASK_DESCRIPTION]
+
+# Examples
+[TASK_EXAMPLE]

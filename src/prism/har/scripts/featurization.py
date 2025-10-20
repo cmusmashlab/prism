@@ -1,5 +1,5 @@
 """
-Featurization script for the HAR task.
+This script featurizes the audio and motion data for a given task.
 before
 - datadrive / tasks / {task_name} / dataset / original
 
@@ -7,6 +7,7 @@ after
 - datadrive / tasks / {task_name} / dataset / featurized
 """
 import argparse
+import importlib
 import numpy as np
 import pandas as pd
 import pickle
@@ -14,12 +15,20 @@ from scipy.io import wavfile
 
 from prism import config
 from prism.har import params
-from prism.har.algorithm import FeatureExtractor
-from prism.har.algorithm.audio import get_audio_examples
-from prism.har.algorithm.motion import get_motion_examples
 
 
 def get_label(t, times, steps):
+    """
+    Get the label for a given timestamp `t` based on the provided `times` and `steps`.
+
+    Args:
+    * t (float): The timestamp in milliseconds.
+    * times (list): A list of timestamps in milliseconds.
+    * steps (list): A list of step labels corresponding to the timestamps.
+
+    Returns:
+    * str: The label corresponding to the timestamp `t`.
+    """
     for i, time in enumerate(times):
         if t < time:
             return steps[i - 1]
@@ -49,52 +58,46 @@ def remove_unnecessary_steps_in_the_beginning_and_end(audio_examples, motion_exa
     imu = motion_examples[i:j + 1,]
     labels = labels[i:j + 1]
     times = times[i:j + 1]
-    print(f'removed other at the beginning and ending: 0 -- {i}, {j} -- {last_index}', audio.shape, imu.shape, len(labels), len(times))
+    print(f'removed other at the beginning and ending: 0 -- {i}, {j} -- {last_index}')
     assert len(labels) == audio.shape[0] == imu.shape[0] == len(times)
     return audio, imu, labels, times
 
 
-def create_feature_pkl(pid, feature_extractor):
-    pid_dir = task_dir / 'dataset' / 'original' / pid
-    annotation_path = pid_dir / 'annotation.txt'
+def create_feature_pkl(sid):
+    sid_dir = task_dir / 'dataset' / 'original' / sid
+    annotation_path = sid_dir / 'annotation.txt'
     if not annotation_path.exists():
-        annotation_times = [1e9]
-        annotation_steps = ['DUMMY']
+        print(f'No annotation file found for {sid}. Skipping.')
+        return None
     else:
-        annotation = pd.read_csv(pid_dir / 'annotation.txt')
+        annotation = pd.read_csv(sid_dir / 'annotation.txt')
         annotation = annotation.sort_values(by='Timestamp')
         annotation_times, annotation_steps = annotation['Timestamp'].tolist(), annotation['Step'].tolist()
     # load data
-    audio_file_path = pid_dir / 'audio.wav'
-    motion_file_path = pid_dir / 'motion.txt'
+    audio_file_path = sid_dir / 'audio.wav'
+    motion_file_path = sid_dir / 'motion.txt'
 
-    # get examples
-    ## audio (every 0.21 sec)
+    # get examples for batch processing based on the window parameters
+    ## audio
     sr, audio_data = wavfile.read(audio_file_path)  # audio data (n_samples, n_channels))
     assert audio_data.dtype == 'int16' and sr == params.SAMPLE_RATE, 'Invalid audio file format.'
-    audio_data = audio_data / (2**15)        # Convert signed 16-bit to [-1.0, +1.0]    # Convert to [-1.0, +1.0]
-    if len(audio_data.shape) > 1:      # Convert to mono.
-        audio_data = np.mean(audio_data, axis=1)
-    audio_examples = get_audio_examples(audio_data)  # audio data (n_frames, n_window_samples, num_mel_bins)   
- 
-    ## motion (every 0.2 sec)
-    motion_df = pd.read_csv(motion_file_path, sep='\s+', header=0, engine='python')
-    motion_data = motion_df.to_numpy()[:, 1:]  # motion data (n_samples, n_features)
-    motion_examples = get_motion_examples(motion_data)  # motion data (n_frames, window_length, n_features)
-    motion_timestamps = motion_df['timestamp'].tolist()
-    print(f'Loaded data for {pid}: {audio_examples.shape=}, {motion_examples.shape=}')
+    audio_examples = feature_extractor_models['audio']['windower'](audio_data)
 
-    # align motion and audio
+    ## motion
+    motion_df = pd.read_csv(motion_file_path, sep='\s+', header=0, engine='python')
+    motion_data = motion_df.to_numpy()
+    motion_examples = feature_extractor_models['motion']['windower'](motion_data[:, 1:])  # Exclude timestamp column
+    motion_timestamps = motion_df['timestamp'].tolist()
+    print(f'Loaded data for {sid}: {audio_examples.shape=}, {motion_examples.shape=}')
+
+    # align motion and audio examples
     aligned_audio_examples = []
     aligned_motion_examples = []
     labels = []
     relative_times = []
-
-    # loop through all the audio examples and
     for i in range(audio_examples.shape[0]):
         end_audio_sec = params.EXAMPLE_WINDOW_SECONDS + params.EXAMPLE_HOP_SECONDS * i
-        motion_sample_num = params.SAMPLE_RATE_IMU * end_audio_sec
-        motion_example_index = int((motion_sample_num - params.WINDOW_LENGTH_IMU) / params.HOP_LENGTH_IMU)
+        motion_example_index = int((params.SAMPLE_RATE_IMU * end_audio_sec - params.WINDOW_LENGTH_IMU) / params.HOP_LENGTH_IMU)
         if motion_example_index >= motion_examples.shape[0]:
             print(f'out of bounds {motion_example_index=} {motion_examples.shape[0]=} {i=} {audio_examples.shape[0]=}')
             break
@@ -115,14 +118,14 @@ def create_feature_pkl(pid, feature_extractor):
             aligned_motion_examples.append(motion_example)
             aligned_audio_examples.append(audio_examples[i, :, :])
         except Exception as e:
-            print(f'Error in getting label for {pid}: ', e)
+            print(f'Error in getting label for {sid}: ', e)
             continue
 
     aligned_audio_examples = np.array(aligned_audio_examples)
     aligned_motion_examples = np.array(aligned_motion_examples)
     assert len(labels) == len(relative_times) == aligned_motion_examples.shape[0] == aligned_audio_examples.shape[0]
 
-    print(f'Featurizing for {pid}: {aligned_audio_examples.shape=}, {aligned_motion_examples.shape=}, {len(labels)=}, {len(relative_times)=}')
+    print(f'Featurizing for {sid}: {aligned_audio_examples.shape=}, {aligned_motion_examples.shape=}, {len(labels)=}, {len(relative_times)=}')
 
     audio_examples, motion_examples, labels, new_times = remove_unnecessary_steps_in_the_beginning_and_end(
                                                             aligned_audio_examples,
@@ -131,37 +134,67 @@ def create_feature_pkl(pid, feature_extractor):
                                                             relative_times
                                                         )
 
+    motion_feature = feature_extractor_models['motion']['featurizer'](motion_examples)
+    audio_feature = feature_extractor_models['audio']['featurizer'](audio_examples)
+
     dataset = {
-        'motion': feature_extractor.featurize_examples(motion_examples, dtype='motion'),
-        'audio': feature_extractor.featurize_examples(audio_examples, dtype='audio'),
+        'motion': motion_feature,
+        'audio': audio_feature,
         'label': labels,
         'timestamp': new_times
     }
 
-    print(f'Featurized done for {pid}: {dataset["motion"].shape=}, {dataset["audio"].shape=}, {len(dataset["label"])=}, {len(dataset["timestamp"])=}')
+    print(f'Featurized done for {sid}: {dataset["motion"].shape=}, {dataset["audio"].shape=}, {len(dataset["label"])=}, {len(dataset["timestamp"])=}')
     return dataset
 
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--task', type=str, help='Task name', required=True)
-    parser.add_argument('--test_pids', type=str, help='To specify test pids (e.g., --test_pids 10,11,14)', default=None)
+    parser.add_argument('--sids', type=str, help='To specify session IDs to be processed (e.g., --sids 10,11,14)', default=None)
     return parser.parse_args()
 
 
 if __name__ == '__main__':
+    print('===== HAR Featurization Script Started =====')
     args = get_args()
     task_dir = config.datadrive / 'tasks' / args.task
-    feature_extractor = FeatureExtractor()
-    to_be_featurized_pids = [f.stem for f in task_dir.glob('dataset/original/*') if f.is_dir()]
-    if args.test_pids is not None:
-        to_be_featurized_pids = [pid for pid in to_be_featurized_pids if pid in args.test_pids.split(',')]
-    print('PIDs to be featurized:', to_be_featurized_pids)
+    feature_extractor_names ={
+        'audio': {
+            'windower': 'BasicAudioWindower',
+            'featurizer': 'SAMoSAAudioFeaturizer'
+        },
+        'motion': {
+            'windower': 'BasicMotionWindower',
+            'featurizer': 'BasicMotionFeaturizer'
+        }
+    }
+    feature_extractor_models = {}
+    prefix = 'prism.har.algorithm.modalities.'
+    for modality, model_dict in feature_extractor_names.items():
+        feature_extractor_models[modality] = {}
+        for key, class_name in model_dict.items():
+            module = importlib.import_module(prefix + modality)
+            feature_extractor_models[modality][key] = getattr(module, class_name)()
 
-    for pid in to_be_featurized_pids:
-        print(f'-----Create feature pkl for {pid}-----')
-        dataset = create_feature_pkl(pid, feature_extractor)
-        save_fp = task_dir / 'dataset' / 'featurized' / f'{pid}.pkl'
+    to_be_featurized_sids = [f.stem for f in task_dir.glob('dataset/original/*') if f.is_dir()]
+    if args.sids is None:
+        already_featurized_sids = [f.stem for f in task_dir.glob('dataset/featurized/*.pkl') if f.is_file()]
+        print('Already featurized session IDs:', already_featurized_sids)
+        to_be_featurized_sids = [sid for sid in to_be_featurized_sids if sid not in already_featurized_sids]
+    else:
+        to_be_featurized_sids = [sid for sid in to_be_featurized_sids if sid in args.sids.split(',')]
+    print('Session IDs to be featurized:', to_be_featurized_sids)
+
+    for sid in to_be_featurized_sids:
+        if '.DS_Store' in sid:
+            continue
+
+        print(f'-----Create feature pkl for {sid}-----')
+        dataset = create_feature_pkl(sid)
+        if dataset is None:
+            continue
+        save_fp = task_dir / 'dataset' / 'featurized' / f'{sid}.pkl'
         save_fp.parent.mkdir(parents=True, exist_ok=True)
         with open(save_fp, 'wb') as f:
             pickle.dump(dataset, f)

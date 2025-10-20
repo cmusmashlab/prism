@@ -1,6 +1,6 @@
 """
-Check the format of the dataset.
-- datadrive / tasks / {task_name} / dataset
+Check the format of the "original" dataset.
+- datadrive / tasks / {task_name} / dataset / original
 """
 
 import argparse
@@ -21,16 +21,19 @@ if __name__ == '__main__':
 
     with open(dataset_dir / 'steps.txt', 'r') as f:
         steps = [s.strip() for s in f.readlines()]
+        for step in steps:
+            assert step.lower() == step, f'Step {step} is not in lowercase.'
         steps = ['BEGIN'] + steps + ['END']
+    print(steps)
 
     error_cnt = 0
-    for pid_dir in dataset_dir.glob('original/*'):
+    for sid_dir in dataset_dir.glob('original/*'):
         try:
-            if not pid_dir.is_dir():
+            if not sid_dir.is_dir():
                 continue
-            audio_path = pid_dir / 'audio.wav'
-            motion_path = pid_dir / 'motion.txt'
-            annotation_path = pid_dir / 'annotation.txt'
+            audio_path = sid_dir / 'audio.wav'
+            motion_path = sid_dir / 'motion.txt'
+            annotation_path = sid_dir / 'annotation.txt'
 
             sr, audio = wavfile.read(audio_path)
             assert sr == 16000, f'Sampling rate is {sr} instead of 16000.'
@@ -49,7 +52,7 @@ if __name__ == '__main__':
                 assert step in steps, f'Unknown step: {step}'
         except Exception as e:
             error_cnt += 1
-            print(f'Error in {pid_dir.stem} --  {e}')
+            print(f'Error in {sid_dir.stem} --  {e}')
     if error_cnt == 0:
         print('All dataset is in the correct format.')
     else:

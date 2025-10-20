@@ -34,7 +34,7 @@ class RemainingTimeEstimator():
     def forward(self, curr_entries):
         """
         Args:
-        * curr_entries (Dict[int, ViterbiEntry]): a dictionary of ViterbiEntry objects for each step.
+        * curr_entries (List[ViterbiEntry]): a list of ViterbiEntry objects for each transition.
 
         Returns:
         * expectations (Dict[Step, float]): a dictionary of the expected remaining time for each step.
@@ -44,21 +44,20 @@ class RemainingTimeEstimator():
         for step in self.graph.steps:  # self.expectations[step][self.time] = 0.0
             self.expectations[step].append(0.0)
             self.entropys[step].append(0.0)
-
+        
         total_prob = 0.0
-        max_log_prob = max([entry.log_prob for entry in curr_entries.values() if not np.isnan(entry.log_prob)], default=-np.inf)
-        for entry in curr_entries.values():
+        max_log_prob = max([entry.log_prob for entry in curr_entries if not np.isnan(entry.log_prob)], default=-np.inf)
+        for entry in curr_entries:
             total_prob += np.nan_to_num(np.exp(entry.log_prob - max_log_prob))
         total_log_prob = np.log(total_prob)
         
         dt_samples = {step: [] for step in self.graph.steps}
 
-        for entry in curr_entries.values():
-            past_steps = set([step.step_index for step in set(entry.history)])
+        for entry in curr_entries:
             mc_expectations, mc_results_raw = monte_carlo_estimate(self.graph, self.graph.steps[entry.last_state.step_index], entry.last_state.time, n_samples=self.mc_samples)
             prob = np.nan_to_num(np.exp(entry.log_prob - max_log_prob - total_log_prob))
             for step, expected_time in mc_expectations.items():
-                if step.index not in past_steps:
+                if step.index not in entry.step_index_order:
                     self.expectations[step][self.time] += prob * expected_time
             
             for step, samples in mc_results_raw.items():

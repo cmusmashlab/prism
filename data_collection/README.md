@@ -83,13 +83,14 @@ This annotation process assumes that `audio.wav` and `motion.txt` are synchroniz
     4. Make sure to mark `END`, which is usually right after the sensor recording stops.
     5. Delete the first 10 lines of the CSV file until `# CSV_HEADER=` such that we can load the CSV easily.
 4. Listen to `audio.wav` and mark the timing of the clap, write it to `clap_time_audio.txt` (in ms).
-5. Gather files under `dataset/raw/{pid}/`. (Please also refer to Section 1.4)
+    * If there is an end clap, you can write as `400.0,33000.0` in one line.
+6. Gather files under `dataset/raw/{sid}/`. (Please also refer to Section 1.4)
 
 ## 1.3. Run Preprocessing Scripts
 
-1. Run `preprocess_raw_dataset.py`, which will create `dataset/original/{pid}/`.
+1. Run `preprocess_raw_dataset.py`, which will create `dataset/original/{sid}/`.
     1. `--task` to specify the task
-    2. `--pid` to specify the participant id
+    2. `--sid` to specify the session id
     3. `--no-video-export` to not export the video file (e.g., for privacy reason)
     4. `--no-sensor-input` to not use `audio.wav` and `motion.txt`. This is a special case and the subsequent process is not supported yet (2024.6). Please reach out to Riku for more details.
 2. Run `check_dataset_format.py`, which will test whether the format of the task dataset is ok or not
@@ -114,6 +115,7 @@ datadrive / tasks / {task_name}
     │       └──-clap_time_audio.txt
     │      
     └───original (this will be created at `1.3`)
+    │   └───1
     │       └──-audio.wav
     │       └──-motion.txt
     │       └──-annotation.txt
