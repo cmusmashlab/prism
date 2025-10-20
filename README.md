@@ -7,19 +7,21 @@ This is a repository for the research code in which we aim to develop a real-tim
 ## Publications
 The code is structured in a modular manner, from underlying sensing mechanisms to user interactions. We value your citation of the relevant publication.
 
-- [PrISM-Tracker: A Framework for Multimodal Procedure Tracking Using Wearable Sensors and State Transition Information with User-Driven Handling of Errors and Uncertainty.
-Riku Arakawa, Hiromu Yakura, Vimal Mollyn, Suzanne Nie, Emma Russell, Dustin P. Dimeo, Haarika A. Reddy, Alexander K. Maytin, Bryan T. Carroll, Jill Fain Lehman, Mayank Goel.
-Proceedings of the ACM on Interactive Mobile Wearable Ubiquitous Technology, Volume 6, Issue 4. (Ubicomp'23)](https://rikky0611.github.io/resource/paper/prism-tracker_imwut2022_paper.pdf)
-- [PrISM-Observer: Intervention Agent to Help Users Perform Everyday Procedures Sensed using a Smartwatch.
-Riku Arakawa, Hiromu Yakura, Mayank Goel.
-Proceedings of the 37th Annual ACM Symposium on User Interface Software and Technology (UIST'24), Pittsburgh, USA, Oct. 2024.](https://arxiv.org/abs/2407.16785)
-- [PrISM-Q&A: PrISM-Q&A: Step-Aware Voice Assistant on a Smartwatch Enabled by Multimodal Procedure Tracking and Large Language Models.
-Riku Arakawa, Jill Fain Lehman, Mayank Goel.
-Proceedings of the ACM on Interactive Mobile Wearable Ubiquitous Technology, Volume 8, Issue 4. (Ubicomp'25)](https://rikky0611.github.io/resource/paper/prism-q&a_imwut2024_paper.pdf)
-- [Scaling Context-Aware Task Assistants that Learn from Demonstration and Adapt through Mixed-Initiative Dialogue.
-Riku Arakawa, Prasoon Patidar, Will Page, Jill Fain Lehman, Mayank Goel.
-Proceedings of the 38th Annual ACM Symposium on User Interface Software and Technology (UIST'25), Busan, South Korea, Sept. 2025.](https://rikky0611.github.io/resource/paper/prism_uist2025_paper.pdf)
+- [PrISM-Tracker: A Framework for Multimodal Procedure Tracking Using Wearable Sensors and State Transition Information with User-Driven Handling of Errors and Uncertainty](https://rikky0611.github.io/resource/paper/prism-tracker_imwut2022_paper.pdf)
+Riku Arakawa, Hiromu Yakura, Vimal Mollyn, Suzanne Nie, Emma Russell, Dustin P. Dimeo, Haarika A. Reddy, Alexander K. Maytin, Bryan T. Carroll, Jill Fain Lehman, Mayank Goel. Proceedings of the ACM on Interactive Mobile Wearable Ubiquitous Technology, Volume 6, Issue 4. (Ubicomp'23)
+    - HAR and Tracker
 
+- [PrISM-Observer: Intervention Agent to Help Users Perform Everyday Procedures Sensed using a Smartwatch](https://arxiv.org/abs/2407.16785)
+Riku Arakawa, Hiromu Yakura, Mayank Goel. Proceedings of the 37th Annual ACM Symposium on User Interface Software and Technology (UIST'24), Pittsburgh, USA, Oct. 2024.
+    - Observer (Proactive Intervention)
+
+- [PrISM-Q&A: PrISM-Q&A: Step-Aware Voice Assistant on a Smartwatch Enabled by Multimodal Procedure Tracking and Large Language Models](https://rikky0611.github.io/resource/paper/prism-q&a_imwut2024_paper.pdf)
+Riku Arakawa, Jill Fain Lehman, Mayank Goel. Proceedings of the ACM on Interactive Mobile Wearable Ubiquitous Technology, Volume 8, Issue 4. (Ubicomp'25)
+    - Question Answering (LLM augmented by Tracker)
+
+- [Scaling Context-Aware Task Assistants that Learn from Demonstration and Adapt through Mixed-Initiative Dialogue](https://rikky0611.github.io/resource/paper/prism_uist2025_paper.pdf)
+Riku Arakawa, Prasoon Patidar, Will Page, Jill Fain Lehman, Mayank Goel. Proceedings of the 38th Annual ACM Symposium on User Interface Software and Technology (UIST'25), Busan, South Korea, Sept. 2025.
+     - Dialogue (Online Adaptation)
 
 # What's in this repository now
 For now, we have
